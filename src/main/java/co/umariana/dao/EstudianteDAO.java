@@ -1,11 +1,14 @@
 package co.umariana.dao;
 
-import co.umariana.conexion.ConexionBD;
-import co.umariana.modelo.Estudiante;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
+
+import co.umariana.conexion.ConexionBD;
+import co.umariana.modelo.Estudiante;
 
 /**
  * DAO (Data Access Object): la única clase que habla con la base de datos.
@@ -69,17 +72,36 @@ public class EstudianteDAO {
     }
 
     // =====================================================================
-    // ETAPA 2. Listar (SELECT)
+    // ETAP
+    // A 2. Listar (SELECT)
     // =====================================================================
 
-    /** @return todos los estudiantes ordenados por id; lista vacía si no hay o si hay un error */
-    public List<Estudiante> listar() {
-        // TODO Etapa 2: SELECT id, nombre, correo, semestre FROM estudiantes ORDER BY id
-        //               Use executeQuery() y recorra el ResultSet con while (rs.next()),
-        //               creando un Estudiante por cada fila y agregándolo a un ArrayList.
-        throw new UnsupportedOperationException("TODO: listar");
+   /** @return todos los estudiantes ordenados por id; lista vacia si no hay o si hay un error */
+public List<Estudiante> listar() {
+    List<Estudiante> estudiantes = new ArrayList<>();
+    String sql = "SELECT id, nombre, correo, semestre FROM estudiantes ORDER BY id";
+
+    try (Connection con = ConexionBD.conectar();
+         PreparedStatement ps = con.prepareStatement(sql);
+         ResultSet rs = ps.executeQuery()) {
+
+        while (rs.next()) {
+            Estudiante estudiante = new Estudiante(
+                rs.getInt("id"),
+                rs.getString("nombre"),
+                rs.getString("correo"),
+                rs.getInt("semestre")
+            );
+
+            estudiantes.add(estudiante);
+        }
+
+    } catch (SQLException e) {
+        System.out.println("Error al listar: " + e.getMessage());
     }
 
+    return estudiantes;
+}
     // =====================================================================
     // ETAPA 3. Buscar por id (SELECT ... WHERE)
     // =====================================================================
