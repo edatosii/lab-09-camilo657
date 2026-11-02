@@ -120,7 +120,6 @@ public class EstudianteServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         String accion = request.getParameter("accion");
 
-        // YA RESUELTO: "crear" (úselo como modelo para "actualizar").
         if ("crear".equals(accion)) {
             String nombre = request.getParameter("nombre");
             String correo = request.getParameter("correo");
@@ -141,10 +140,70 @@ public class EstudianteServlet extends HttpServlet {
             return;
         }
 
-        // TODO Etapa 7: según 'accion' (ver CONTRATO arriba), lo que falta: actualizar, eliminar
-        //   u otra (400).
-        //   Para actualizar construya el objeto con:
-        //       new Estudiante(id, nombre.trim(), correo.trim(), Integer.parseInt(semestre.trim()))
-        throw new UnsupportedOperationException("TODO: doPost");
+        if ("actualizar".equals(accion)) {
+            String idStr = request.getParameter("id");
+            if (idStr == null || idStr.trim().isEmpty()) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+                return;
+            }
+            try {
+                int id = Integer.parseInt(idStr.trim());
+                
+                // Verificar si el ID existe antes de actualizar
+                if (dao.buscarPorId(id) == null) {
+                    response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                    return;
+                }
+
+                String nombre = request.getParameter("nombre");
+                String correo = request.getParameter("correo");
+                String semestre = request.getParameter("semestre");
+
+                String error = validar(nombre, correo, semestre);
+                if (error == null) {
+                    Estudiante estudiante = new Estudiante(id, nombre.trim(), correo.trim(), Integer.parseInt(semestre.trim()));
+                    if (dao.actualizar(estudiante)) {
+                        response.sendRedirect("estudiantes");
+                        return;
+                    }
+                    error = "No se pudo actualizar el estudiante. Verifique que el correo no esté repetido.";
+                }
+                request.setAttribute("error", error);
+                request.getRequestDispatcher(VISTA_FORMULARIO).forward(request, response);
+                return;
+            } catch (NumberFormatException e) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                return;
+            }
+        }
+
+        if ("eliminar".equals(accion)) {
+            String idStr = request.getParameter("id");
+            if (idStr == null || idStr.trim().isEmpty()) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+                return;
+            }
+            try {
+                int id = Integer.parseInt(idStr.trim());
+                
+                // Verificar si el ID existe antes de eliminar
+                if (dao.buscarPorId(id) == null) {
+                    response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                    return;
+                }
+
+                if (dao.eliminar(id)) {
+                    response.sendRedirect("estudiantes");
+                    return;
+                }
+                response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                return;
+            } catch (NumberFormatException e) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                return;
+            }
+        }
+
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST);
     }
 }

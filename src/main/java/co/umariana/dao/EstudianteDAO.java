@@ -123,8 +123,22 @@ public List<Estudiante> listar() {
      *         (por ejemplo, correo ya usado por OTRO estudiante)
      */
     public boolean actualizar(Estudiante estudiante) {
-        // TODO Etapa 4: UPDATE estudiantes SET nombre = ?, correo = ?, semestre = ? WHERE id = ?
-        throw new UnsupportedOperationException("TODO: actualizar");
+        String sql = "UPDATE estudiantes SET nombre = ?, correo = ?, semestre = ? WHERE id = ?";
+        try (Connection con = ConexionBD.conectar();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setString(1, estudiante.getNombre());
+            ps.setString(2, estudiante.getCorreo());
+            ps.setInt(3, estudiante.getSemestre());
+            ps.setInt(4, estudiante.getId());
+            
+            // Retorna true si se afectó al menos una fila (es decir, el ID existía)
+            return ps.executeUpdate() > 0;
+            
+        } catch (SQLException e) {
+            System.out.println("Error al actualizar: " + e.getMessage());
+            return false;
+        }
     }
 
     // =====================================================================
@@ -133,7 +147,18 @@ public List<Estudiante> listar() {
 
     /** @return true si se eliminó; false si no existía ese id o si hubo un error */
     public boolean eliminar(int id) {
-        // TODO Etapa 5: DELETE FROM estudiantes WHERE id = ?
-        throw new UnsupportedOperationException("TODO: eliminar");
+        String sql = "DELETE FROM estudiantes WHERE id = ?";
+        try (Connection con = ConexionBD.conectar();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, id);
+            
+            // Retorna true si se eliminó al menos un registro
+            return ps.executeUpdate() > 0;
+            
+        } catch (SQLException e) {
+            System.out.println("Error al eliminar: " + e.getMessage());
+            return false;
+        }
     }
 }
