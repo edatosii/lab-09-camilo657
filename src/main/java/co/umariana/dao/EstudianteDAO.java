@@ -71,12 +71,11 @@ public class EstudianteDAO {
         }
     }
 
-    // =====================================================================
-    // ETAP
-    // A 2. Listar (SELECT)
-    // =====================================================================
+// =====================================================================
+// ETAPA 2. Listar (SELECT)
+// =====================================================================
 
-   /** @return todos los estudiantes ordenados por id; lista vacia si no hay o si hay un error */
+/** @return todos los estudiantes ordenados por id; lista vacia si no hay o si hay un error */
 public List<Estudiante> listar() {
     List<Estudiante> estudiantes = new ArrayList<>();
     String sql = "SELECT id, nombre, correo, semestre FROM estudiantes ORDER BY id";
@@ -102,17 +101,34 @@ public List<Estudiante> listar() {
 
     return estudiantes;
 }
+
     // =====================================================================
     // ETAPA 3. Buscar por id (SELECT ... WHERE)
     // =====================================================================
 
     /** @return el estudiante con ese id, o null si no existe (o si hay un error) */
     public Estudiante buscarPorId(int id) {
-        // TODO Etapa 3: SELECT id, nombre, correo, semestre FROM estudiantes WHERE id = ?
-        throw new UnsupportedOperationException("TODO: buscarPorId");
+    String sql = "SELECT id, nombre, correo, semestre FROM estudiantes WHERE id = ?";
+    try (Connection con = ConexionBD.conectar();
+         PreparedStatement ps = con.prepareStatement(sql)) {
+        ps.setInt(1, id);
+        try (ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return new Estudiante(
+                    rs.getInt("id"),
+                    rs.getString("nombre"),
+                    rs.getString("correo"),
+                    rs.getInt("semestre")
+                );
+            }
+        }
+    } catch (SQLException e) {
+        System.out.println("Error al buscar por ID: " + e.getMessage());
     }
+    return null;
+}
 
-    // =====================================================================
+// =====================================================================
     // ETAPA 4. Actualizar (UPDATE)
     // =====================================================================
 

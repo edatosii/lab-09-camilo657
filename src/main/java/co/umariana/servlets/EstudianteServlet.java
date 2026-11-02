@@ -83,38 +83,53 @@ public class EstudianteServlet extends HttpServlet {
     // ETAPA 6. Mostrar (GET)
     // =====================================================================
 
-    @Override
+@Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String accion = request.getParameter("accion");
-
-        // YA RESUELTO: "nuevo" muestra el formulario vacío.
         if ("nuevo".equals(accion)) {
             request.getRequestDispatcher(VISTA_FORMULARIO).forward(request, response);
             return;
         }
-        if ("listar".equals(accion)) {
+        
+        if ("listar".equals(accion) || accion == null) {
             request.setAttribute("estudiantes", dao.listar());
             request.getRequestDispatcher(VISTA_LISTAR).forward(request, response);
             return;
-            
         }
 
-        // TODO Etapa 6: según 'accion' (ver CONTRATO arriba), lo que falta:
-        //   - null o "listar": setAttribute("estudiantes", ...) y forward a VISTA_LISTAR
-        //   - "editar": convierta "id" a int (cuidado con NumberFormatException), busque con el DAO,
-        //               setAttribute("estudiante", ...) y forward a VISTA_FORMULARIO;
-        //               si no existe: response.sendError(HttpServletResponse.SC_NOT_FOUND)
-        //   - otra: response.sendError(HttpServletResponse.SC_BAD_REQUEST)
-        // Pista: request.getRequestDispatcher(ruta).forward(request, response)
-        throw new UnsupportedOperationException("TODO: doGet");
+        if ("editar".equals(accion)) {
+            String idStr = request.getParameter("id");
+            if (idStr == null || idStr.trim().isEmpty()) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                return;
+            }
+            try {
+                int id = Integer.parseInt(idStr.trim());
+                Estudiante estudiante = dao.buscarPorId(id);
+                
+                if (estudiante != null) {
+                    request.setAttribute("estudiante", estudiante);
+                    request.getRequestDispatcher(VISTA_FORMULARIO).forward(request, response);
+                    return;
+                } else {
+                    response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                    return;
+                }
+            } catch (NumberFormatException e) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                return;
+            }
+        }
+
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST);
     }
 
     // =====================================================================
     // ETAPA 7. Crear, actualizar y eliminar (POST)
     // =====================================================================
 
-    @Override
+@Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
